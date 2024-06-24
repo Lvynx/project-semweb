@@ -22,8 +22,8 @@
         }
 
         .search-container {
-            max-width: 600px;
-            margin: 100px auto;
+            max-width: 1000px;
+            margin: 10px auto;
             padding: 20px;
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 10px;
@@ -38,7 +38,7 @@
 
         .search-container h1 {
             font-size: 24px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: #555;
         }
 
@@ -74,6 +74,7 @@
 
         .search-results table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
         }
 
@@ -115,57 +116,59 @@
 </head>
 
 <body>
-    <div class="search-container">
-        <img src="https://img.icons8.com/ios-filled/50/000000/open-book.png" alt="Book Logo">
-        <h1>LibGen Tech Book</h1>
-        <div class="search-box">
-            <form class="d-flex" role="search" action="" method="post" id="nameform">
-                <input class="form-control me-2" type="search" placeholder="Type a command or search" aria-label="Search" name="search">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </form>
-        </div>
-
-        <?php if (isset($_POST['search'])): ?>
-            <div class="search-results">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Showing search results for "<?php echo $_POST['search']; ?>"</span>
-                <table class="table table-bordered table-striped table-hover text-center">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Book</th>
-                            <th>Category</th>
-                            <th>Published</th>
-                            <th>Author</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Example static data -->
-                        <tr>
-                            <td>1</td>
-                            <td>Example Book</td>
-                            <td>Fiction</td>
-                            <td>2000</td>
-                            <td>John Doe</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Another Book</td>
-                            <td>Non-Fiction</td>
-                            <td>2010</td>
-                            <td>Jane Smith</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="no-results">
-                <span>No tags found</span>
-                <p>"Untitled" did not match any tags currently used in projects. Please try again or create a new tag.</p>
-                <button class="btn btn-outline-secondary">Clear search</button>
-            </div>
-        <?php endif; ?>
+<div class="search-container">
+    <img src="https://img.icons8.com/ios-filled/50/000000/open-book.png" alt="Book Logo">
+    <h1>LibGen Tech Book</h1>
+    <div class="search-box">
+        <form class="d-flex" role="search" action="index.php" method="get" id="nameform">
+            <input ac class="form-control me-2" type="search" placeholder="Type to search" aria-label="Search" name="search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
     </div>
+
+    <?php
+    // Include the file containing the function
+    include 'jena_sparql.php';
+
+    // Define the SPARQL endpoint URL and query
+    $sparqlEndpoint = "http://localhost:3030/libs/query";
+    $queryFile = "showAll.rq";
+    $sparqlQuery = file_get_contents($queryFile);
+
+    if (isset($_GET['search'])) {
+        // Call the searchRdfData function with the search term
+        $searchTerm = $_GET['search'] ?? '';
+        $result = searchRdfData($searchTerm);
+    } else {
+        $result = executeSparqlQueryAndGetResults($sparqlEndpoint, $sparqlQuery);
+    }
+
+    // Check if the result is not false (indicating success)
+    if ($result !== false) {
+        // Display the results as an HTML table
+        echo "<div class='search-results'>";
+        echo "<table class='table table-bordered table-striped table-hover text-center' name='search-result'>";
+        echo "<tr>";
+        foreach ($result['head']['vars'] as $var) {
+            echo "<th>$var</th>";
+        }
+        echo "</tr>";
+        foreach ($result['results']['bindings'] as $row) {
+            echo "<tr>";
+            foreach ($result['head']['vars'] as $var) {
+                echo "<td>" . $row[$var]['value'] . "</td>";
+            }
+            echo "</tr>";
+        }
+        echo "</table>";
+        echo "</div>";
+    } else {
+        // Handle the failure
+        echo 'Failed to retrieve data.';
+    }
+    ?>
+</div>
+
 
 </body>
 

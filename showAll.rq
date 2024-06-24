@@ -1,0 +1,12 @@
+    PREFIX ex: <http://libs.com/>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+    SELECT ?author ?title ?publisher ?year ?pages ?language
+    WHERE {
+      ?sub ex:Author ?author .
+      ?sub ex:Title ?title .
+      ?sub ex:Publisher ?publisher .
+      ?sub ex:Year ?year .
+      ?sub ex:Pages ?pages .
+      ?sub ex:Language ?language .
+    }
